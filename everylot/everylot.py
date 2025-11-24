@@ -8,9 +8,9 @@ import os
 NEXT_LOT_QUERY = """
     SELECT ogc_fid AS id, *
     FROM cincinnati_lots
-    WHERE ogc_fid > ?
-    AND is_posted = 0
-    ORDER BY ogc_fid ASC
+    WHERE is_posted = 0
+    AND improvement_value > 0
+    ORDER BY RANDOM()
     LIMIT 1;
 """
 
@@ -55,40 +55,8 @@ class EveryLot:
             # Get specific ogc_fid
             cursor = self.conn.execute(SPECIFIC_LOT_QUERY, (id_,))
         else:
-            # Check if we have any posted lots
-            cursor = self.conn.execute("""
-                SELECT ogc_fid AS id FROM cincinnati_lots 
-                WHERE is_posted != 0
-                ORDER BY ogc_fid DESC
-                LIMIT 1
-            """)
-            row = cursor.fetchone()
-            
-            # Get the last posted lot's ID
-            if row:
-                start_id = row['id']
-            else:
-                # If no lots have been posted yet, check if START_PIN10 lot is already posted
-                start_id = os.getenv('START_PIN10', '0')
-                if start_id != '0':
-                    cursor = self.conn.execute("""
-                        SELECT is_posted FROM cincinnati_lots 
-                        WHERE ogc_fid = ?
-                    """, (start_id,))
-                    row = cursor.fetchone()
-                    # If START_PIN10 lot is already posted, use it as start_id to find next
-                    # If not posted, get that specific lot
-                    if row and row[0] != 0:
-                        start_id = start_id  # Use as starting point for next lot
-                    else:
-                        cursor = self.conn.execute(SPECIFIC_LOT_QUERY, (start_id,))
-                        row = cursor.fetchone()
-                        if row:
-                            self.lot = dict(row)
-                            return
-            
-            # Get the next unposted lot after start_id
-            cursor = self.conn.execute(NEXT_LOT_QUERY, (start_id,))
+            # Get a random unposted lot
+            cursor = self.conn.execute(NEXT_LOT_QUERY)
 
         row = cursor.fetchone()
         self.lot = dict(row) if row else None
