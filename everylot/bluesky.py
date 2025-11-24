@@ -26,14 +26,14 @@ class BlueskyPoster:
             self.logger.error(f"Failed to login to Bluesky: {str(e)}")
             raise
 
-    def post(self, status_text, image_data=None, pin10=None, clean_address=None):
+    def post(self, status_text, image_data=None, auditorIds=None, clean_address=None):
         """
         Post to Bluesky with optional image.
         
         Args:
             status_text (str): The text content to post
             image_data (bytes-like object): Optional image data to upload
-            pin10 (str): The PIN10 identifier for the property
+            auditorIds (str): The auditorIds identifier for the property
             clean_address (str): The sanitized address of the property
             
         Returns:
@@ -58,7 +58,7 @@ class BlueskyPoster:
                     "$type": "app.bsky.embed.images",
                     "images": [{
                         "image": upload_resp["blob"],
-                        "alt": f"Google Streetview of the property with PIN10 {pin10}: {clean_address}"
+                        "alt": f"Google Streetview of {clean_address}, corresponding to Hamilton County Auditor Parcel IDs: {auditorIds}"
                     }]
                 }
 
